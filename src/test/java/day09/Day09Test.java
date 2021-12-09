@@ -27,7 +27,7 @@ public class Day09Test {
     @Test
     void part2() {
         var input = Utils.INSTANCE.readFile("day09/input");
-        Assertions.assertEquals(1134, Day09.part2(input));
+        Assertions.assertEquals(1017792, Day09.part2(input));
     }
 
 }
