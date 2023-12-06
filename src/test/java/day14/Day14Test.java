@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class Day14Test {
 
     @Test
-    void part1Example() throws InterruptedException {
+    void part1Example() {
         var input = String.join("\n", Utils.INSTANCE.readFile("day14/example"));
         var day14 = new Day14(input.split("\n"));
 
@@ -16,7 +16,7 @@ public class Day14Test {
     }
 
     @Test
-    void part1() throws InterruptedException {
+    void part1() {
         var input = String.join("\n", Utils.INSTANCE.readFile("day14/input"));
         var day14 = new Day14(input.split("\n"));
 
@@ -24,10 +24,10 @@ public class Day14Test {
     }
 
     @Test
-    void part2() throws InterruptedException {
+    void part2() {
         var input = String.join("\n", Utils.INSTANCE.readFile("day14/input"));
         var day14 = new Day14(input.split("\n"));
-        assertEquals(3306, day14.solve(40));
+        assertEquals(3760312702877L, day14.solve(40));
     }
 
 }
