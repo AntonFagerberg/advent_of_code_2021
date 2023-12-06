@@ -1,131 +1,78 @@
 package day14;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.OpenOption;
-import java.nio.file.StandardOpenOption;
-import java.util.*;
-import java.util.stream.Stream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class Day14 {
 
-    static Map<String, Long> res = new HashMap<>();
+    Map<Character, Map<Character, Character>> mapping;
+    Map<Character, Long> result;
+    String polymer;
 
-    static void growCount(String a, String b, Map<String, String> lookup, int depth) {
-        if (depth == 0) {
-//            var result = new HashMap<2String, Long>();
-            res.put(a, res.getOrDefault(a, 0L) + 1L);
-//            return result;
-//            return Map.of(a, 1L);
-//            return Map.of(a, 1L);
-//            return a.equals(b) ? Map.of(a, 2L) : Map.of(a, 1L, b, 1L);
-        } else {
-            var c = lookup.get(a + b);
-//            var result = new HashMap<String, Long>();
-//            result.put(a, 1L);
-//            result.put(c, 1L);
-            growCount(a, c, lookup, depth - 1);
-            growCount(c, b, lookup, depth - 1);
+    public Day14(String[] input) {
+        mapping = new HashMap<>();
+        result = new HashMap<>();
 
-//            for (var e : r1.entrySet()) {
-//                result.put(e.getKey(), e.getValue() + result.getOrDefault(e.getKey(), 0L));
-//            }
-//            for (var e : r2.entrySet()) {
-//                r1.put(e.getKey(), e.getValue() + r1.getOrDefault(e.getKey(), 0L));
-//            }
+        this.polymer = input[0];
 
+        for (int i = 2; i < input.length; i++) {
+            char a = input[i].charAt(0);
+            char b = input[i].charAt(1);
+            char c = input[i].charAt(6);
 
-//            return res;
-//
-////            var result = new HashMap<>(growCount(a, c, lookup, depth - 1));
-////
-////            for (var e : growCount(b, c, lookup, depth - 1).entrySet()) {
-////                result.put(e.getKey(), e.getValue() + result.getOrDefault(e.getKey(), 0L));
-////            }
-////
-////            return result;
+            Map<Character, Character> inner = mapping.getOrDefault(a, new HashMap<>());
+            inner.put(b, c);
+            mapping.put(a, inner);
         }
     }
 
-    static long solve(List<String> input, int steps) throws IOException {
-        var polymer = input.get(0).split("");
-        var mapping = new HashMap<String, String>();
-        for (var i = 2; i < input.size(); i++) {
-            var line = input.get(i).split(" -> ");
-            mapping.put(line[0], line[1]);
+    long solve(int iterations) throws InterruptedException {
+        result.put(polymer.charAt(0), 1L);
+
+        var executorService = Executors.newFixedThreadPool(polymer.length() - 2);
+
+        for (int i = 0; i < polymer.length() - 1; i++) {
+            final var j = i;
+            System.out.println(i);
+            executorService.submit(() ->
+                    recurse(polymer.charAt(j), polymer.charAt(j + 1), iterations)
+            );
         }
 
-//        var count = new HashMap<String, Long>();
-//        count.put(polymer.get(0), 1L);
+        executorService.shutdown();
+        executorService.awaitTermination(365, TimeUnit.DAYS);
 
-//        var result = new HashMap<String, Long>();
+        System.out.println(result);
 
-//        for (var a : polymer) {
-//            result.put(a, result.getOrDefault(a, 0L) + 1L);
-//        }
+        var min = result.values().stream()
+                .min(Long::compareTo);
 
+        var max = result.values().stream()
+                .max(Long::compareTo);
 
+        return max.orElseThrow() - min.orElseThrow();
+    }
 
-        for (var j = 0; j < polymer.length - 1; j++) {
-            System.out.println(" => " + polymer[j] + polymer[j + 1]);
-            growCount(polymer[j], polymer[j + 1], mapping, steps);
+    synchronized void update(char b) {
+        result.put(b, result.getOrDefault(b, 0L) + 1L);
+    }
 
-//            for (var e : growCount(polymer[j], polymer[j + 1], mapping, steps).entrySet()) {
-//                result.put(e.getKey(), e.getValue() + result.getOrDefault(e.getKey(), 0L));
-//            }
-
-//            var subPolymer = new ArrayList<String>();
-//            subPolymer.add(polymer.get(j));
-//            subPolymer.add(polymer.get(j + 1));
-
-
-//            System.out.println(" -> " + subPolymer);
-
-//            for (var i = 0; i < steps; i++) {
-//                var tempPolymer = new ArrayList<String>();
-//                tempPolymer.add(subPolymer.get(0));
-//                for (var k = 0; k < subPolymer.size() - 1; k++) {
-//                    var first = subPolymer.get(k);
-//                    var last = subPolymer.get(k + 1);
-//                    tempPolymer.add(mapping.get(first + last));
-//                    tempPolymer.add(last);
-//                }
-////                tempPolymer.remove(0);
-//                subPolymer = tempPolymer;
-////                System.out.println(subPolymer);
-//            }
-
-//            subPolymer.remove(0);
-
-//
-//            subPolymer.forEach(s -> {
-//                count.put(s, count.getOrDefault(s, 0L) + 1L);
-//            });
-//            System.out.println(subPolymer);
+    void recurse(char a, char b, int step) {
+        if (step <= 0) {
+            update(b);
+            return;
         }
 
-        res.put(polymer[polymer.length - 1], res.getOrDefault(polymer[polymer.length - 1], 0L) + 1L);
+        var c = mapping.get(a).get(b);
 
-        System.out.println(res);
-//
-//        var counts = Arrays.stream(polymer)
-//                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-//
-        var max = Long.MIN_VALUE;
-        var min = Long.MAX_VALUE;
-
-        for (var entry : res.entrySet()) {
-            System.out.println(entry);
-            if (entry.getValue() > max) {
-                max = entry.getValue();
-            }
-            if (entry.getValue() < min) {
-                min = entry.getValue();
-            }
+        if (c == null) {
+            return;
         }
 
-        return max - min;
+        recurse(a, c, step - 1);
+        recurse(c, b, step - 1);
     }
 
 }
